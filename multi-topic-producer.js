@@ -2,7 +2,7 @@ const { Kafka } = require('kafkajs')
 
 // kafka client
 const kafka = new Kafka({
-    clientId: "simple-producer-consumer-application",
+    clientId: "multi-topic-producer-application",
     brokers: ['localhost:9092']
 })
 
@@ -19,24 +19,30 @@ const startProducer = async () => {
         0 = no acknowledgement
         1 = only waits for the leader to acknowledge
     */ 
-    await producer.send({
-        topic: "simple-topic",
-        acks: -1,
-        messages: [
+    await producer.sendBatch({
+        // topic: "simple-topic",
+        // acks: -1,
+        topicMessages: [
             {
-                key: 'key1',
-                value: "my 1st nodejs message",
+                topic: 'topic-a',
+                messages: [
+                    {
+                        key: 'key1',
+                        value: "my 1st nodejs message",
+                    }
+                ]
             },
             {
-                key: 'key2',
-                value: "my 2nd nodejs message",
-                headers: {
-                    'correlation-id': "uuid",
-                }
-            },
-            {
-                key: 'key3',
-                value: "3rd message",
+                topic:"topic-b",
+                messages: [
+                    {
+                        key: 'key2',
+                        value: "my 2nd nodejs message",
+                        headers: {
+                            'correlation-id': "uuid",
+                        }
+                    }
+                ]
             }
         ],
     })
@@ -51,7 +57,11 @@ const startConsumer = async () => {
 
     await consumer.connect();
     await consumer.subscribe({
-        topic: "simple-topic",
+        topic: "topic-a",
+        fromBeginning: true
+    })
+    await consumer.subscribe({
+        topic: "topic-b",
         fromBeginning: true
     })
 
